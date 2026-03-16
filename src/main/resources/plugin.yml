@@ -5,3 +5,4 @@ api-version: '1.21'
 load: STARTUP
 authors: [ QuLusche ]
 website: https://www.instagram.com/molequle._/
+folia-supported: true
