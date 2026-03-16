@@ -100,11 +100,11 @@
             <scope>compile</scope>
         </dependency>
 
-        <!-- MySQL Connector -->
+        <!-- Sqlite -->
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.33</version>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.51.2.0</version>
             <scope>compile</scope>
         </dependency>
 
