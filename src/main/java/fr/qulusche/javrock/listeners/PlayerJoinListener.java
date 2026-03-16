@@ -27,6 +27,9 @@ public class PlayerJoinListener implements Listener {
 						});
 					} else {
 						plugin.getFoliaLib().getScheduler().runAtEntity(player, task -> {
+							account.setOnline(true);
+							plugin.getPlayerAccountManager().savePlayerAccount(account);
+
 							player.sendMessage(Component.text("Welcome " + account.getUsername() + "! Your team is " + account.getTeam().name()));
 						});
 					}

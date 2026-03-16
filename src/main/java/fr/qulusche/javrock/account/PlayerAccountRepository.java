@@ -27,19 +27,24 @@ public class PlayerAccountRepository {
 		}
 
 		plugin.getFoliaLib().getScheduler().runAsync(task -> {
-			String sql = "INSERT INTO player_accounts (uuid, username, online, team, created_at, last_updated) " +
-					"VALUES (?, ?, ?, ?, datetime('now'), datetime('now')) " +
-					"ON CONFLICT(uuid) DO UPDATE SET username = ?, online = ?, team = ?, last_updated = datetime('now')";
-			try (Connection connection = databaseManager.getConnection();
-				 PreparedStatement statement = connection.prepareStatement(sql)) {
-				statement.setString(1, playerAccount.getPlayerUUID().toString());
-				statement.setString(2, playerAccount.getUsername());
-				statement.setBoolean(3, playerAccount.isOnline());
-				statement.setInt(4, playerAccount.getTeam().getPower());
-				statement.setString(5, playerAccount.getUsername());
-				statement.setBoolean(6, playerAccount.isOnline());
-				statement.setInt(7, playerAccount.getTeam().getPower());
-				statement.executeUpdate();
+			try {
+				Connection connection = databaseManager.getConnection();
+				PreparedStatement preparedStatement = connection.prepareStatement(
+						"INSERT INTO player_accounts (uuid, username, online, team, created_at, last_updated) " +
+						"VALUES (?, ?, ?, ?, datetime('now'), datetime('now')) " +
+						"ON CONFLICT(uuid) DO UPDATE SET username = ?, online = ?, team = ?, last_updated = datetime('now')"
+				);
+
+				preparedStatement.setString(1, playerAccount.getPlayerUUID().toString());
+				preparedStatement.setString(2, playerAccount.getUsername());
+				preparedStatement.setBoolean(3, playerAccount.isOnline());
+				preparedStatement.setInt(4, playerAccount.getTeam().getPower());
+				preparedStatement.setString(5, playerAccount.getUsername());
+				preparedStatement.setBoolean(6, playerAccount.isOnline());
+				preparedStatement.setInt(7, playerAccount.getTeam().getPower());
+				preparedStatement.executeUpdate();
+				preparedStatement.close();
+				plugin.getLogger().info("Updated player account for " + playerAccount.getUsername());
 			} catch (Exception e) {
 				plugin.getLogger().severe("Failed to update player account for "
 						+ playerAccount.getUsername() + ": " + e.getMessage());
@@ -50,16 +55,23 @@ public class PlayerAccountRepository {
 
 	public CompletableFuture<PlayerAccount> loadPlayerAccount(UUID uuid) {
 		CompletableFuture<PlayerAccount> future = new CompletableFuture<>();
+
 		plugin.getFoliaLib().getScheduler().runAsync(task -> {
-			try (Connection conn = databaseManager.getConnection();
-				 PreparedStatement stmt = conn.prepareStatement(
-						 "SELECT * FROM player_accounts WHERE uuid = ?")) {
-				stmt.setString(1, uuid.toString());
-				ResultSet rs = stmt.executeQuery();
-				if (!rs.next()) future.complete(null);
-				else future.complete(new PlayerAccount(UUID.fromString(rs.getString("uuid")), rs.getString("username"), rs.getBoolean("online"), PlayerTeam.getTeamFromPower(rs.getInt("team"))));
-				rs.close();
+			try {
+				Connection connection = databaseManager.getConnection();
+
+				PreparedStatement preparedStatement = connection.prepareStatement("SELECT * FROM player_accounts WHERE uuid = ?");
+				preparedStatement.setString(1, uuid.toString());
+
+				ResultSet resultSet = preparedStatement.executeQuery();
+				if (!resultSet.next()) future.complete(null);
+				else future.complete(new PlayerAccount(UUID.fromString(resultSet.getString("uuid")), resultSet.getString("username"), resultSet.getBoolean("online"), PlayerTeam.getTeamFromPower(resultSet.getInt("team"))));
+
+				resultSet.close();
+				preparedStatement.close();
+
 			} catch (Exception e) {
+				plugin.getLogger().severe("sdsdqsdFailed to load player account for " + uuid.toString());
 				future.completeExceptionally(e);
 			}
 		});
