@@ -1,7 +1,6 @@
 package fr.qulusche.javrock.listeners;
 
 import fr.qulusche.javrock.Javrock;
-import fr.qulusche.javrock.account.PlayerAccount;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

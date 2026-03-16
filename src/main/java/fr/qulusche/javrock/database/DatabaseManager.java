@@ -2,7 +2,6 @@ package fr.qulusche.javrock.database;
 
 import fr.qulusche.javrock.Javrock;
 import lombok.Getter;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;

@@ -10,7 +10,7 @@ public class PlayerAccount {
 	@Getter
 	private final UUID playerUUID;
 	@Getter
-	private String username;
+	private final String username;
 
 	@Getter @Setter
 	private boolean online;

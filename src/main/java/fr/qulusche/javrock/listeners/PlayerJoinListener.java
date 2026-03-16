@@ -9,7 +9,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 
 public class PlayerJoinListener implements Listener {
 
-	private Javrock plugin;
+	private final Javrock plugin;
 
 	public PlayerJoinListener(Javrock plugin) {
 		this.plugin = plugin;

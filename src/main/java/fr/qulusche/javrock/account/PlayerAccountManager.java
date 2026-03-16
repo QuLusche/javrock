@@ -1,9 +1,7 @@
 package fr.qulusche.javrock.account;
 
 import fr.qulusche.javrock.Javrock;
-import fr.qulusche.javrock.database.DatabaseManager;
 import org.bukkit.entity.Player;
-import org.bukkit.scoreboard.Team;
 import org.geysermc.geyser.api.GeyserApi;
 
 import java.util.HashMap;
