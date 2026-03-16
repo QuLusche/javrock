@@ -1,5 +1,7 @@
 .idea/*
 
+.server
+
 *.class
 
 *.log
