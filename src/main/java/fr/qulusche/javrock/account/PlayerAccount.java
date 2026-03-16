@@ -1,26 +1,28 @@
 package fr.qulusche.javrock.account;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.UUID;
 
 public class PlayerAccount {
 
 	@Getter
-	private final UUID UUID;
+	private final UUID playerUUID;
 	@Getter
 	private String username;
 
-	@Getter
+	@Getter @Setter
 	private boolean online;
 
-	@Getter
+	@Getter @Setter
 	private PlayerTeam team;
 
-	public PlayerAccount(UUID uuid, String username, boolean online, PlayerTeam team) {
-		this.UUID = uuid;
+	public PlayerAccount(UUID playerUUID, String username, boolean online, PlayerTeam team) {
+		this.playerUUID = playerUUID;
 		this.username = username;
 		this.online = online;
 		this.team = team;
 	}
+
 }

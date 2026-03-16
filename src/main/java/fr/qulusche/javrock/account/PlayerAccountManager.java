@@ -8,6 +8,7 @@ import org.geysermc.geyser.api.GeyserApi;
 
 import java.util.HashMap;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public class PlayerAccountManager {
 
@@ -22,24 +23,40 @@ public class PlayerAccountManager {
 		this.playerAccountRepository = new PlayerAccountRepository(plugin);
 	}
 
-	public PlayerAccount getAccount(Player player) {
+	public CompletableFuture<PlayerAccount> getAccount(Player player) {
 		if (playerAccounts.containsKey(player.getUniqueId())) {
-			return playerAccounts.get(player.getUniqueId());
+			return CompletableFuture.completedFuture(
+					playerAccounts.get(player.getUniqueId())
+			);
 		}
-
-		PlayerAccount playerAccount = playerAccountRepository.loadPlayerAccount(player.getUniqueId());
-		if  (playerAccount != null) {
-			playerAccounts.put(player.getUniqueId(), playerAccount);
-			return playerAccount;
-		}
-
-		playerAccount = new PlayerAccount(player.getUniqueId(), player.getName(), true, GeyserApi.api().isBedrockPlayer(player.getUniqueId()) ? PlayerTeam.BEDROCK : PlayerTeam.JAVA);
-		playerAccountRepository.updatePlayerAccount(playerAccount);
-		playerAccounts.put(player.getUniqueId(), playerAccount);
-		return playerAccount;
+		return playerAccountRepository.loadPlayerAccount(player.getUniqueId())
+				.thenApply(account -> {
+					if (account == null) {
+						PlayerAccount newAccount = createAccount(player);
+						playerAccounts.put(player.getUniqueId(), newAccount);
+						playerAccountRepository.updatePlayerAccount(newAccount);
+						return newAccount;
+					}
+					playerAccounts.put(player.getUniqueId(), account);
+					return account;
+				});
 	}
 
 	public void savePlayerAccount(PlayerAccount playerAccount) {
 		playerAccountRepository.updatePlayerAccount(playerAccount);
 	}
+
+	public void removePlayerAccount(PlayerAccount playerAccount) {
+		playerAccount.setOnline(false);
+		savePlayerAccount(playerAccount);
+		playerAccounts.remove(playerAccount.getPlayerUUID());
+	}
+
+	private PlayerAccount createAccount(Player player) {
+		PlayerTeam team = GeyserApi.api().isBedrockPlayer(player.getUniqueId())
+				? PlayerTeam.BEDROCK
+				: PlayerTeam.JAVA;
+		return new PlayerAccount(player.getUniqueId(), player.getName(), true, team);
+	}
+
 }

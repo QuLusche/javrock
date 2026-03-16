@@ -11,7 +11,7 @@ public enum PlayerTeam {
 	;
 
 	@Getter
-	private int power;
+	private final int power;
 
 	PlayerTeam(int power) {
 		this.power = power;

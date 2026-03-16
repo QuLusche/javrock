@@ -2,8 +2,6 @@ package fr.qulusche.javrock.account;
 
 import fr.qulusche.javrock.Javrock;
 import fr.qulusche.javrock.database.DatabaseManager;
-import org.bukkit.entity.Player;
-import org.bukkit.scoreboard.Team;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -23,89 +21,48 @@ public class PlayerAccountRepository {
 	}
 
 	public void updatePlayerAccount(PlayerAccount playerAccount) {
-		if (!checkDatabase()) {
+		if (!databaseManager.isConnected()) {
 			plugin.getLogger().warning("Database connection is not available. Cannot update player account for " + playerAccount.getUsername());
 			return;
 		}
 
 		plugin.getFoliaLib().getScheduler().runAsync(task -> {
-			try {
-				Connection connection = databaseManager.getConnection();
-
-				String sql = "INSERT INTO player_accounts (uuid, username, online, team, created_at, last_updated) VALUES (?, ?, ?, ?, datetime('now'), datetime('now')) "+
-						"ON CONFLICT(uuid) DO UPDATE SET username = ?, online = ?, team = ?, last_updated = datetime('now');";
-
-				PreparedStatement statement = connection.prepareStatement(sql);
-				statement.setString(1, playerAccount.getUUID().toString());
+			String sql = "INSERT INTO player_accounts (uuid, username, online, team, created_at, last_updated) " +
+					"VALUES (?, ?, ?, ?, datetime('now'), datetime('now')) " +
+					"ON CONFLICT(uuid) DO UPDATE SET username = ?, online = ?, team = ?, last_updated = datetime('now')";
+			try (Connection connection = databaseManager.getConnection();
+				 PreparedStatement statement = connection.prepareStatement(sql)) {
+				statement.setString(1, playerAccount.getPlayerUUID().toString());
 				statement.setString(2, playerAccount.getUsername());
 				statement.setBoolean(3, playerAccount.isOnline());
 				statement.setInt(4, playerAccount.getTeam().getPower());
 				statement.setString(5, playerAccount.getUsername());
 				statement.setBoolean(6, playerAccount.isOnline());
 				statement.setInt(7, playerAccount.getTeam().getPower());
-
 				statement.executeUpdate();
-				statement.close();
-
-				plugin.getLogger().info("Updated player account for " + playerAccount.getUsername());
 			} catch (Exception e) {
-				plugin.getLogger().severe("Failed to update player account for " + playerAccount.getUsername() + ": " + e.getMessage());
+				plugin.getLogger().severe("Failed to update player account for "
+						+ playerAccount.getUsername() + ": " + e.getMessage());
 			}
 		});
+
 	}
 
-	public PlayerAccount loadPlayerAccount(UUID uuid) {
-		if (!checkDatabase()) {
-			plugin.getLogger().warning("Database connection is not available. Cannot load player account.");
-			return null;
-		}
-
-		CompletableFuture<PlayerAccount> accountFuture = new CompletableFuture<>();
-
+	public CompletableFuture<PlayerAccount> loadPlayerAccount(UUID uuid) {
+		CompletableFuture<PlayerAccount> future = new CompletableFuture<>();
 		plugin.getFoliaLib().getScheduler().runAsync(task -> {
-			try {
-				Connection connection = databaseManager.getConnection();
-
-				String sql = "SELECT * FROM player_accounts WHERE uuid = ?";
-
-				PreparedStatement statement = connection.prepareStatement(sql);
-				statement.setString(1, uuid.toString());
-
-				ResultSet resultSet = statement.executeQuery();
-				if (resultSet.next()) {
-					accountFuture.complete(new PlayerAccount(
-							UUID.fromString(resultSet.getString("uuid")),
-							resultSet.getString("username"),
-							resultSet.getBoolean("online"),
-							PlayerTeam.getTeamFromPower(resultSet.getInt("team"))
-					));
-
-					plugin.getLogger().info("Loaded player account for " + uuid);
-				} else {
-					plugin.getLogger().info("No player account found for UUID " + uuid);
-					accountFuture.complete(null);
-				}
-
-				resultSet.close();
-				statement.close();
+			try (Connection conn = databaseManager.getConnection();
+				 PreparedStatement stmt = conn.prepareStatement(
+						 "SELECT * FROM player_accounts WHERE uuid = ?")) {
+				stmt.setString(1, uuid.toString());
+				ResultSet rs = stmt.executeQuery();
+				if (!rs.next()) future.complete(null);
+				else future.complete(new PlayerAccount(UUID.fromString(rs.getString("uuid")), rs.getString("username"), rs.getBoolean("online"), PlayerTeam.getTeamFromPower(rs.getInt("team"))));
+				rs.close();
 			} catch (Exception e) {
-				plugin.getLogger().severe("Failed to load player account for UUID " + uuid + ": " + e.getMessage());
-				accountFuture.complete(null);
+				future.completeExceptionally(e);
 			}
 		});
-
-		if (accountFuture.isDone()) return accountFuture.join();
-		return null;
-	}
-
-	private boolean checkDatabase() {
-		if (databaseManager == null) return false;
-
-		try {
-			Connection connection = databaseManager.getConnection();
-			return connection != null && !connection.isClosed();
-		} catch (Exception ignored) {
-			return false;
-		}
+		return future;
 	}
 }
