@@ -65,11 +65,13 @@ public class DatabaseManager {
 		try (var statement = this.connection.createStatement()) {
 
 			statement.executeUpdate(
-					"CREATE TABLE IF NOT EXISTS players (" +
-							"player_uuid VARCHAR(36) PRIMARY KEY," +
-							"player_name VARCHAR(16) NOT NULL," +
-							"online BOOLEAN NOT NULL DEFAULT FALSE," +
-							"last_updated TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP" +
+					"CREATE TABLE IF NOT EXISTS player_accounts (" +
+							"uuid VARCHAR(36) PRIMARY KEY," +
+							"username VARCHAR(16) NOT NULL," +
+							"online INTEGER NOT NULL DEFAULT 0," +
+							"team INTEGER NOT NULL DEFAULT 0," +
+							"created_at TIMESTAMP NOT NULL DEFAULT (datetime('now'))," +
+							"last_updated TIMESTAMP NOT NULL DEFAULT (datetime('now'))" +
 							")"
 			);
 

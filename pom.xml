@@ -71,6 +71,12 @@
             <id>tcoded-releases</id>
             <url>https://repo.tcoded.com/releases</url>
         </repository>
+
+        <!-- Geyser's API repository -->
+        <repository>
+            <id>opencollab-snapshot</id>
+            <url>https://repo.opencollab.dev/main/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -98,6 +104,14 @@
             <artifactId>FoliaLib</artifactId>
             <version>0.5.1</version>
             <scope>compile</scope>
+        </dependency>
+
+        <!-- Geyser's API -->
+        <dependency>
+            <groupId>org.geysermc.geyser</groupId>
+            <artifactId>api</artifactId>
+            <version>2.9.0-SNAPSHOT</version>
+            <scope>provided</scope>
         </dependency>
 
         <!-- Sqlite -->
